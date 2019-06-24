@@ -1,0 +1,121 @@
+PATH = attrPath / valuePath [subAttr];
+
+attrPath  = [URI ":"] ATTRNAME *1subAttr;
+
+valuePath = attrPath "[" valFilter "]";
+
+valFilter = attrExp / ( filter SP ("and" / "or") SP filter ) / *1"not" "(" valFilter ")";
+
+attrExp = (attrPath SP "pr") / (attrPath SP compareOp SP compValue);
+
+filter = ( attrExp filterDash ) / (valuePath filterDash) / ( *1"not" "(" filter ")" filterDash );
+
+filterDash = SP ("and" / "or") SP filter filterDash / "";
+
+compValue = false / null / true / number / string;
+
+compareOp = "eq" / "ne" / "co" / "sw" / "ew" / "gt" / "lt" / "ge" / "le";
+
+ATTRNAME  = ALPHA *(nameChar);
+
+nameChar  = "-" / "_" / DIGIT / ALPHA;
+
+subAttr   = "." ATTRNAME;
+
+SP             =  %x20;
+
+ALPHA          =  %x41-5A / %x61-7A   ;
+
+DIGIT          =  %x30-39;
+
+string = quotation-mark *char quotation-mark;
+
+char = unescaped / escape ( %x22 / %x5C / %x2F / %x62 / %x66 / %x6E / %x72 / %x74 / %x75 4HEXDIG );
+
+escape = %x5C;
+
+quotation-mark = %x22;
+
+unescaped = %x20-21 / %x23-5B / %x5D-10FFFF;
+
+HEXDIG         =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F";
+
+false = %x66.61.6c.73.65;
+
+null  = %x6e.75.6c.6c;
+
+true  = %x74.72.75.65;
+
+number = [ minus ] int [ frac ] [ exp ];
+
+exp = e [ minus / plus ] 1*DIGIT;
+
+frac = decimal-point 1*DIGIT;
+
+int = zero / ( digit1-9 *DIGIT );
+
+decimal-point = %x2E;
+
+digit1-9 = %x31-39;
+
+e = %x65 / %x45;
+
+minus = %x2D;
+
+plus = %x2B;
+
+zero = %x30;
+
+URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ];
+
+hier-part = "//" authority path-abempty / path-absolute / path-rootless / path-empty;
+
+scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." );
+
+authority     = [ userinfo "@" ] host [ ":" port ];
+userinfo      = *( unreserved / pct-encoded / sub-delims / ":" );
+host          = IP-literal / IPv4address / reg-name;
+port          = *DIGIT;
+
+IP-literal    = "[" ( IPv6address / IPvFuture  ) "]";
+
+IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" );
+
+IPv6address   =                            6( h16 ":" ) ls32
+                 /                       "::" 5( h16 ":" ) ls32
+                 / [               h16 ] "::" 4( h16 ":" ) ls32
+                 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+                 / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+                 / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+                 / [ *4( h16 ":" ) h16 ] "::"              ls32
+                 / [ *5( h16 ":" ) h16 ] "::"              h16
+                 / [ *6( h16 ":" ) h16 ] "::";
+
+
+h16           = 1*4HEXDIG;
+ls32          = ( h16 ":" h16 ) / IPv4address;
+IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet;
+
+dec-octet     = DIGIT / %x31-39 DIGIT / "1" 2DIGIT / "2" %x30-34 DIGIT / "25" %x30-35;
+
+reg-name      = *( unreserved / pct-encoded / sub-delims );
+
+path-abempty  = *( "/" segment );
+path-absolute = "/" [ segment-nz *( "/" segment ) ];
+path-rootless = segment-nz *( "/" segment );
+path-empty    = *0pchar;
+
+segment       = *pchar;
+segment-nz    = 1*pchar;
+
+pchar         = unreserved / pct-encoded / sub-delims / ":" / "@";
+
+query         = *( pchar / "/" / "?" );
+
+fragment      = *( pchar / "/" / "?" );
+
+pct-encoded   = "%" HEXDIG HEXDIG;
+
+unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~";
+
+sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "=";
